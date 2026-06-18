@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unfoldd — Offer Letter Portal</title>
+<link rel="icon" href="https://srklrlzewvozsvebzgvm.supabase.co/storage/v1/object/public/avatars/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Allura&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F7F3EA;
+    --cream-2:#EFE9DA;
+    --ink:#1A1A1A;
+    --ink-soft:#4a4a47;
+    --line:#DAD3C2;
+    --card:#FFFFFF;
+    --grad: linear-gradient(90deg,#5B2A86 0%,#D6336C 50%,#F7941D 100%);
+    --brand-blue:#4338CA;
+    --orange:#F7941D;
+    --radius:14px;
+    --shadow: 0 8px 24px rgba(26,26,26,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Poppins',sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  .app{display:flex;flex-direction:column;min-height:100vh;}
+
+  /* ---------- Top bar ---------- */
+  .accent-strip{height:4px;background:var(--grad);}
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 32px;background:var(--card);border-bottom:1px solid var(--line);
+    flex-wrap:wrap;gap:14px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand img{width:34px;height:34px;display:block;}
+  .brand .wordmark{font-weight:800;font-size:19px;letter-spacing:-0.3px;}
+  .brand .wordmark .a{color:var(--ink);}
+  .brand .wordmark .b{color:var(--orange);}
+  .brand .sub{font-size:10.5px;color:#8a857a;letter-spacing:0.06em;margin-top:-2px;}
+
+  .tabs{display:flex;gap:6px;background:var(--cream-2);padding:5px;border-radius:999px;}
+  .tab{
+    border:none;background:transparent;padding:9px 18px;border-radius:999px;
+    font-family:inherit;font-weight:600;font-size:13.5px;color:var(--ink-soft);
+    cursor:pointer;transition:all .18s ease;
+  }
+  .tab.active{background:var(--ink);color:#fff;}
+  .tab:not(.active):hover{color:var(--ink);}
+
+  main{flex:1;padding:28px 32px 60px;max-width:1320px;margin:0 auto;width:100%;}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+  h1.page-title{font-size:22px;font-weight:700;margin:0 0 4px;}
+  p.page-sub{color:var(--ink-soft);font-size:13.5px;margin:0 0 24px;max-width:640px;line-height:1.6;}
+
+  /* ---------- Buttons ---------- */
+  button{cursor:pointer;}
+  .btn{
+    font-family:inherit;font-weight:600;font-size:13.5px;border-radius:10px;
+    padding:11px 18px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);
+    transition:all .15s ease;
+  }
+  .btn:hover{background:var(--ink);color:#fff;}
+  .btn-primary{
+    border:none;background:var(--grad);color:#fff;box-shadow:var(--shadow);
+  }
+  .btn-primary:hover{filter:brightness(1.05);}
+  .btn-ghost{border:1.5px solid var(--line);color:var(--ink-soft);}
+  .btn-ghost:hover{background:var(--cream-2);color:var(--ink);}
+  .btn-danger{border:1.5px solid #c0392b;color:#c0392b;}
+  .btn-danger:hover{background:#c0392b;color:#fff;}
+  .btn-sm{padding:7px 12px;font-size:12.5px;border-radius:8px;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .btn:disabled:hover{background:transparent;color:var(--ink);}
+
+  /* ---------- Generate layout ---------- */
+  .generate-grid{display:grid;grid-template-columns:380px 1fr;gap:26px;align-items:start;}
+  @media (max-width:1040px){.generate-grid{grid-template-columns:1fr;}}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .form-card{padding:22px;}
+  .field-group{margin-bottom:16px;}
+  .field-group label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;}
+  .field-group .hint{font-size:11px;color:#a39d8e;margin-top:4px;line-height:1.4;}
+  .field-group input[type=text],
+  .field-group input[type=number],
+  .field-group input[type=date],
+  .field-group select{
+    width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;
+    font-family:inherit;font-size:13.5px;background:#fcfbf8;color:var(--ink);
+    transition:border-color .15s ease;
+  }
+  .field-group input:focus,.field-group select:focus{outline:none;border-color:var(--ink);}
+  .radio-row{display:flex;gap:18px;margin-top:4px;}
+  .radio-row label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--ink);margin:0;}
+  .radio-row input{accent-color:var(--ink);}
+  .form-divider{height:1px;background:var(--line);margin:18px 0;}
+  .form-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+
+  /* ---------- Preview ---------- */
+  .preview-wrap{position:sticky;top:20px;}
+  .preview-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap;}
+  .preview-toolbar .status{font-size:12px;color:#8a857a;}
+  .letter-scale{overflow-x:auto;display:flex;justify-content:center;padding:10px 0 4px;}
+
+  /* ---------- THE LETTER ITSELF (visual identity preserved) ---------- */
+  .letter{
+    width:210mm;min-height:297mm;background:#fff;
+    box-shadow:0 14px 40px rgba(0,0,0,0.14);
+    display:flex;flex-direction:column;flex-shrink:0;
+  }
+  .letter .bar{height:4mm;background:var(--grad);flex-shrink:0;}
+  .letter-inner{flex:1;display:flex;flex-direction:column;padding:16mm 19mm 12mm;font-family:'Poppins',sans-serif;color:#1f2937;}
+
+  .l-header{display:flex;justify-content:space-between;align-items:flex-start;}
+  .l-brand{display:flex;align-items:center;gap:11px;}
+  .l-brand img{width:56px;height:56px;object-fit:contain;display:block;}
+  .l-wordmark{font-weight:800;font-size:27px;letter-spacing:-0.4px;line-height:1;}
+  .l-wordmark .a{color:#23262b;}
+  .l-wordmark .b{color:var(--orange);}
+  .l-tagline{font-size:9.5px;color:#9a958a;letter-spacing:0.08em;margin-top:3px;}
+
+  .l-header-right{display:flex;flex-direction:column;align-items:flex-end;}
+  .l-offer{font-weight:800;font-size:25px;color:var(--brand-blue);letter-spacing:0.2px;white-space:nowrap;margin-top:8px;}
+  .l-date{font-size:11.5px;color:#5b5b57;margin-top:6px;font-weight:500;letter-spacing:0.15px;white-space:nowrap;}
+
+  .l-rule{height:1px;background:#e7e3d8;margin:20px 0 26px;}
+
+  .l-intern{font-weight:700;font-size:15.5px;margin-bottom:18px;}
+  .l-intern .val{font-weight:500;}
+
+  .l-dear{font-weight:700;font-size:15.5px;margin-bottom:14px;}
+
+  .l-para{font-size:14.5px;line-height:1.85;margin-bottom:14px;color:#26282c;}
+  .l-para b{font-weight:700;color:#16181b;}
+
+  .l-details{
+    background:#fbfaf6;border:1px solid #ece7d9;border-radius:9px;
+    padding:14px 18px;margin:4px 0 18px;
+    display:grid;grid-template-columns:150px 1fr;row-gap:9px;column-gap:10px;
+  }
+  .l-details .dt{font-size:12.5px;font-weight:600;color:#7c766a;text-transform:uppercase;letter-spacing:0.04em;align-self:center;}
+  .l-details .dd{font-size:14px;font-weight:700;color:#16181b;align-self:center;}
+
+  .l-signoff{margin-top:6px;font-size:14.5px;line-height:1.7;}
+  .l-signoff .team{font-weight:800;font-size:15.5px;}
+  .l-signoff .team .a{color:#23262b;}
+  .l-signoff .team .b{color:var(--orange);}
+
+  .l-spacer{flex:1;min-height:30px;}
+
+  .l-auth{width:62mm;margin-bottom:14px;}
+  .l-auth-caption{font-size:10px;font-weight:700;color:#9a958a;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;}
+  .l-sigpad{background:#f6f5f2;border-radius:7px;height:17mm;display:flex;align-items:flex-end;padding:0 8px 4px;margin-bottom:5px;overflow:hidden;}
+  .l-sigpad img{max-height:15mm;max-width:100%;object-fit:contain;}
+  .l-sigpad .cursive{font-family:'Allura',cursive;font-size:38px;color:#1f2024;line-height:1;}
+  .l-sigline{border-bottom:1.4px solid #2b2b2b;margin-bottom:7px;}
+  .l-signame{font-weight:700;font-size:13.5px;color:#16181b;}
+  .l-sigtitle{font-size:11.5px;color:var(--brand-blue);margin-top:2px;}
+
+  .l-watermark{text-align:center;line-height:0.78;margin:6px 0 2px;user-select:none;}
+  .l-watermark span{font-weight:800;font-size:74px;letter-spacing:-2px;}
+  .l-watermark .a{color:transparent;-webkit-text-stroke:1.4px #e3e0d6;text-stroke:1.4px #e3e0d6;}
+  .l-watermark .b{color:transparent;-webkit-text-stroke:2px var(--orange);text-stroke:2px var(--orange);}
+
+  .l-footer{text-align:center;margin-top:6px;padding-top:8px;border-top:1px solid #ece7d9;}
+  .l-footer .line1{font-size:9.5px;color:#8a857a;margin-bottom:3px;}
+  .l-footer .line2{font-size:9.5px;color:#9a958a;}
+
+  /* ---------- History ---------- */
+  .table-card{padding:6px;}
+  .table-toolbar{display:flex;justify-content:space-between;align-items:center;padding:16px 18px 8px;gap:12px;flex-wrap:wrap;}
+  .table-toolbar input{
+    padding:9px 13px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;
+    font-size:13px;width:240px;background:#fcfbf8;
+  }
+  .table-toolbar input:focus{outline:none;border-color:var(--ink);}
+  table{width:100%;border-collapse:collapse;}
+  thead th{
+    text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:0.05em;
+    color:#a39d8e;padding:10px 18px;border-bottom:1px solid var(--line);font-weight:600;
+  }
+  tbody td{padding:13px 18px;font-size:13.5px;border-bottom:1px solid #f0ece1;vertical-align:middle;}
+  tbody tr:hover{background:#fcfbf6;}
+  .row-actions{display:flex;gap:8px;}
+  .empty-state{padding:48px 20px;text-align:center;color:#a39d8e;font-size:13.5px;}
+  .badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600;background:var(--cream-2);color:var(--ink-soft);}
+
+  /* ---------- Settings ---------- */
+  .settings-grid{display:grid;grid-template-columns:minmax(0,440px);gap:22px;}
+  .sig-card{padding:22px;}
+  .sig-card h3{margin:0 0 4px;font-size:15px;font-weight:700;}
+  .sig-card .role-tag{font-size:12px;color:#a39d8e;margin-bottom:16px;}
+  .upload-zone{
+    border:1.5px dashed var(--line);border-radius:10px;padding:18px;text-align:center;
+    background:#fcfbf6;margin-bottom:16px;
+  }
+  .upload-zone .preview-sig{height:60px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+  .upload-zone .preview-sig img{max-height:55px;max-width:90%;object-fit:contain;}
+  .upload-zone .preview-sig .cursive-preview{font-family:'Allura',cursive;font-size:36px;color:#333;}
+  .upload-zone input[type=file]{display:none;}
+  .upload-label{
+    display:inline-block;padding:8px 16px;border:1.5px solid var(--ink);border-radius:8px;
+    font-size:12.5px;font-weight:600;cursor:pointer;transition:all .15s ease;
+  }
+  .upload-label:hover{background:var(--ink);color:#fff;}
+  .remove-link{display:block;margin-top:8px;font-size:11.5px;color:#c0392b;cursor:pointer;background:none;border:none;font-family:inherit;}
+  .settings-actions{margin-top:22px;display:flex;gap:10px;align-items:center;}
+  .save-msg{font-size:12.5px;color:#2e7d32;font-weight:600;opacity:0;transition:opacity .3s ease;}
+  .save-msg.show{opacity:1;}
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:12px 22px;border-radius:10px;font-size:13.5px;
+    font-weight:500;box-shadow:0 10px 30px rgba(0,0,0,0.25);opacity:0;pointer-events:none;
+    transition:all .25s ease;z-index:999;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ---------- Print ---------- */
+  @media print{
+    @page{size:A4;margin:0;}
+    body *{visibility:hidden;}
+    .print-target,.print-target *{visibility:visible;}
+    .print-target{position:absolute;top:0;left:0;margin:0;box-shadow:none !important;}
+    .letter{box-shadow:none;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="accent-strip"></div>
+  <div class="topbar">
+    <div class="brand">
+      <img src="https://srklrlzewvozsvebzgvm.supabase.co/storage/v1/object/public/avatars/icon.png" alt="Unfoldd">
+      <div>
+        <div class="wordmark"><span class="a">Unfol</span><span class="b">dd</span></div>
+        <div class="sub">OFFER LETTER PORTAL</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-tab="generate">Generate</button>
+      <button class="tab" data-tab="history">History</button>
+      <button class="tab" data-tab="settings">Settings</button>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- ===================== GENERATE ===================== -->
+    <section id="tab-generate" class="tab-panel active">
+      <h1 class="page-title">Generate an offer letter</h1>
+      <p class="page-sub">Fill in the intern's details on the left — the letter on the right updates instantly. Save it to History for your records, then print or save it as a PDF.</p>
+
+      <div class="generate-grid">
+        <form class="card form-card" id="letterForm" onsubmit="return false;">
+
+          <div class="field-group">
+            <label for="f-internId">Intern ID</label>
+            <input type="text" id="f-internId" placeholder="e.g. UNF-2026-0142">
+          </div>
+
+          <div class="field-group">
+            <label for="f-name">Student name</label>
+            <input type="text" id="f-name" placeholder="e.g. Riya Sharma">
+          </div>
+
+          <div class="field-group">
+            <label for="f-role">Position / role title</label>
+            <input type="text" id="f-role" placeholder="e.g. Frontend Developer Intern">
+          </div>
+
+          <div class="field-group">
+            <label for="f-company">Company name</label>
+            <input type="text" id="f-company" placeholder="e.g. Acme Robotics Pvt. Ltd.">
+          </div>
+
+          <div class="field-group">
+            <label for="f-duration">Duration</label>
+            <input type="text" id="f-duration" placeholder="e.g. 3 Months">
+          </div>
+
+          <div class="field-group">
+            <label for="f-startDate">Start date</label>
+            <input type="date" id="f-startDate">
+          </div>
+
+          <div class="field-group">
+            <label for="f-endDate">End date</label>
+            <input type="date" id="f-endDate">
+            <div class="hint">Kept as an internal record for History — not printed on the letter itself, which states duration and start date.</div>
+          </div>
+
+          <div class="field-group">
+            <label for="f-worktype">Work mode</label>
+            <select id="f-worktype">
+              <option value="">Select…</option>
+              <option value="Remote">Remote</option>
+              <option value="On-site">On-site</option>
+              <option value="Hybrid">Hybrid</option>
+            </select>
+          </div>
+
+          <div class="form-divider"></div>
+
+          <div class="field-group">
+            <label>Stipend structure</label>
+            <div class="radio-row">
+              <label><input type="radio" name="stipendType" value="fixed" checked> Fixed amount</label>
+              <label><input type="radio" name="stipendType" value="performance"> Performance based</label>
+            </div>
+          </div>
+
+          <div class="field-group" id="stipendAmountGroup">
+            <label for="f-stipend">Monthly stipend amount</label>
+            <input type="text" id="f-stipend" placeholder="e.g. ₹15,000">
+          </div>
+
+          <div class="form-divider"></div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-primary" id="saveHistoryBtn">Save to History</button>
+            <button type="button" class="btn btn-ghost" id="resetFormBtn">Clear form</button>
+          </div>
+        </form>
+
+        <div class="preview-wrap">
+          <div class="preview-toolbar">
+            <span class="status" id="previewStatus">Live preview — updates as you type</span>
+            <button type="button" class="btn btn-primary" id="printBtn">Print / Save as PDF</button>
+          </div>
+          <div class="letter-scale">
+            <div class="letter print-target" id="letterEl">
+              <div class="bar"></div>
+              <div class="letter-inner">
+
+                <div class="l-header">
+                  <div class="l-brand">
+                    <img src="https://srklrlzewvozsvebzgvm.supabase.co/storage/v1/object/public/avatars/icon.png" alt="Unfoldd logo">
+                    <div>
+                      <div class="l-wordmark"><span class="a">Unfol</span><span class="b">dd</span></div>
+                      <div class="l-tagline">AICAREERPLATFORM FOR ENGINEERING STUDENTS</div>
+                    </div>
+                  </div>
+                  <div class="l-header-right">
+                    <div class="l-offer">OFFER LETTER</div>
+                    <div class="l-date" id="p-issueDate">Date: —</div>
+                  </div>
+                </div>
+
+                <div class="l-rule"></div>
+
+                <div class="l-intern">Intern ID : <span class="val" id="p-internId"></span></div>
+
+                <div class="l-dear">Dear <span id="p-name">[Student Name]</span>,</div>
+
+                <div class="l-para">
+                  We are pleased to offer you an internship with <b id="p-company">[Company Name]</b> through the Unfoldd
+                  platform, extended on the basis of your verified skill profile and performance through our selection
+                  process. The key details of this internship are set out below.
+                </div>
+
+                <div class="l-details">
+                  <div class="dt">Position</div><div class="dd" id="p-role">[Position / Role Title]</div>
+                  <div class="dt">Duration</div><div class="dd" id="p-duration">[Duration]</div>
+                  <div class="dt">Start Date</div><div class="dd" id="p-startDate">[Start Date]</div>
+                  <div class="dt">Work Mode</div><div class="dd" id="p-worktype">[Remote / On-site / Hybrid]</div>
+                  <div class="dt">Stipend Structure</div><div class="dd" id="p-stipend">[Stipend Amount]</div>
+                </div>
+
+                <div class="l-para">
+                  Please confirm your acceptance within 7 days through your Unfoldd dashboard. By accepting this offer,
+                  you acknowledge and agree to the internship terms stated above. We look forward to having you on board.
+                </div>
+
+                <div class="l-signoff">
+                  Warm Regards,<br>
+                  <span class="team"><span class="a">Team Unfol</span><span class="b">dd</span></span>
+                </div>
+
+                <div class="l-spacer"></div>
+
+                <div class="l-auth">
+                  <div class="l-auth-caption">For Unfoldd Technologies</div>
+                  <div class="l-sigpad" id="sigPad"><span class="cursive">Mrishu</span></div>
+                  <div class="l-sigline"></div>
+                  <div class="l-signame" id="sigName">[HR] Mrishu</div>
+                  <div class="l-sigtitle" id="sigTitle">HR, Unfoldd Technologies</div>
+                </div>
+
+                <div class="l-watermark"><span class="a">Unfol</span><span class="b">dd</span></div>
+                <div class="l-footer">
+                  <div class="line1">This is an official offer letter issued by Unfoldd Technologies.</div>
+                  <div class="line2">www.unfoldd.me &nbsp;|&nbsp; support@unfoldd.me</div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== HISTORY ===================== -->
+    <section id="tab-history" class="tab-panel">
+      <h1 class="page-title">Offer letter history</h1>
+      <p class="page-sub">Every letter you save lives here, stored locally in this browser. Reload one to reprint it, or remove it for good.</p>
+
+      <div class="card table-card">
+        <div class="table-toolbar">
+          <input type="text" id="historySearch" placeholder="Search by name or intern ID…">
+          <span class="status" id="historyCount" style="color:#a39d8e;font-size:12.5px;"></span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Intern ID</th><th>Name</th><th>Role</th><th>Company</th><th>Saved on</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+        <div class="empty-state" id="historyEmpty" style="display:none;">No saved letters yet — generate one and click "Save to History".</div>
+      </div>
+    </section>
+
+    <!-- ===================== SETTINGS ===================== -->
+    <section id="tab-settings" class="tab-panel">
+      <h1 class="page-title">Signature</h1>
+      <p class="page-sub">Upload the HR signatory's signature once — it's saved in this browser and stamped onto every letter you generate from now on. Leave it blank and a clean signature-style rendering of the name is used instead.</p>
+
+      <div class="settings-grid">
+        <div class="card sig-card">
+          <h3>HR Signatory</h3>
+          <div class="role-tag">Shown as the authorized signatory on the letter</div>
+
+          <div class="upload-zone">
+            <div class="preview-sig" id="previewSig"><span class="cursive-preview">Mrishu</span></div>
+            <label class="upload-label" for="upload1">Upload signature image</label>
+            <input type="file" id="upload1" accept="image/*">
+            <button type="button" class="remove-link" id="remove1">Remove uploaded signature</button>
+          </div>
+
+          <div class="field-group">
+            <label for="s1-tag">Role tag (shown in brackets)</label>
+            <input type="text" id="s1-tag" placeholder="e.g. HR">
+          </div>
+          <div class="field-group">
+            <label for="s1-name">Full name</label>
+            <input type="text" id="s1-name" placeholder="e.g. Mrishu">
+          </div>
+          <div class="field-group">
+            <label for="s1-title">Title line</label>
+            <input type="text" id="s1-title" placeholder="e.g. HR, Unfoldd Technologies">
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-actions">
+        <button type="button" class="btn btn-primary" id="saveSettingsBtn">Save settings</button>
+        <button type="button" class="btn btn-ghost" id="resetSettingsBtn">Reset to default</button>
+        <span class="save-msg" id="saveMsg">Saved ✓</span>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   IndexedDB layer
+   ============================================================ */
+const DB_NAME = 'UnfolddOfferPortalDB';
+const DB_VERSION = 1;
+let dbInstance = null;
+
+function openDB(){
+  return new Promise((resolve, reject) => {
+    if (dbInstance) return resolve(dbInstance);
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('settings')) {
+        db.createObjectStore('settings', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('letters')) {
+        const store = db.createObjectStore('letters', { keyPath: 'id', autoIncrement: true });
+        store.createIndex('byInternId', 'internId', { unique: false });
+      }
+    };
+    req.onsuccess = (e) => { dbInstance = e.target.result; resolve(dbInstance); };
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function dbGet(storeName, key){
+  return openDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readonly');
+    const req = tx.objectStore(storeName).get(key);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  }));
+}
+
+function dbPut(storeName, value){
+  return openDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    const req = tx.objectStore(storeName).put(value);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  }));
+}
+
+function dbGetAll(storeName){
+  return openDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readonly');
+    const req = tx.objectStore(storeName).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  }));
+}
+
+function dbDelete(storeName, key){
+  return openDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    const req = tx.objectStore(storeName).delete(key);
+    req.onsuccess = () => resolve(true);
+    req.onerror = () => reject(req.error);
+  }));
+}
+
+/* ============================================================
+   Defaults — single HR signatory
+   ============================================================ */
+const DEFAULT_SIGNATORY = {
+  id: 'signatories',
+  sig: { tag: 'HR', name: 'Mrishu', title: 'HR, Unfoldd Technologies', image: null }
+};
+
+/* ============================================================
+   Helpers
+   ============================================================ */
+function escapeHtml(str){
+  if (str == null) return '';
+  return String(str)
+    .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;').replaceAll("'", '&#39;');
+}
+
+function formatDateLong(isoStr){
+  if (!isoStr) return '';
+  const d = new Date(isoStr + 'T00:00:00');
+  if (isNaN(d.getTime())) return '';
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function todayLong(){
+  const d = new Date();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._tm);
+  showToast._tm = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+}
+
+/* ============================================================
+   Letter rendering
+   ============================================================ */
+function bracketOrValue(value, placeholder){
+  const v = (value || '').trim();
+  return v ? escapeHtml(v) : '[' + placeholder + ']';
+}
+
+function renderLetter(){
+  const internId   = document.getElementById('f-internId').value.trim();
+  const name        = document.getElementById('f-name').value;
+  const role        = document.getElementById('f-role').value;
+  const company     = document.getElementById('f-company').value;
+  const duration    = document.getElementById('f-duration').value;
+  const startDate   = document.getElementById('f-startDate').value;
+  const worktype    = document.getElementById('f-worktype').value;
+  const stipendType = document.querySelector('input[name="stipendType"]:checked').value;
+  const stipend     = document.getElementById('f-stipend').value;
+
+  document.getElementById('p-issueDate').textContent = 'Date: ' + todayLong();
+  document.getElementById('p-internId').textContent = internId;
+  document.getElementById('p-name').innerHTML = bracketOrValue(name, 'Student Name');
+  document.getElementById('p-company').innerHTML = bracketOrValue(company, 'Company Name');
+  document.getElementById('p-role').innerHTML = bracketOrValue(role, 'Position / Role Title');
+  document.getElementById('p-duration').innerHTML = bracketOrValue(duration, 'Duration');
+  document.getElementById('p-startDate').innerHTML = startDate ? formatDateLong(startDate) : '[Start Date]';
+  document.getElementById('p-worktype').innerHTML = worktype ? escapeHtml(worktype) : '[Remote / On-site / Hybrid]';
+
+  const stipendEl = document.getElementById('p-stipend');
+  if (stipendType === 'performance') {
+    stipendEl.innerHTML = 'Performance-Based';
+  } else {
+    const v = (stipend || '').trim();
+    stipendEl.innerHTML = v ? escapeHtml(v) + ' / month (Fixed)' : '[Stipend Amount]';
+  }
+}
+
+function toggleStipendField(){
+  const type = document.querySelector('input[name="stipendType"]:checked').value;
+  document.getElementById('stipendAmountGroup').style.display = (type === 'fixed') ? '' : 'none';
+}
+
+/* ============================================================
+   Signature — apply settings to the live letter preview
+   ============================================================ */
+function applySignatoryToDOM(data){
+  const pad = document.getElementById('sigPad');
+  const nameEl = document.getElementById('sigName');
+  const titleEl = document.getElementById('sigTitle');
+
+  pad.innerHTML = '';
+  if (data.image) {
+    const img = document.createElement('img');
+    img.src = data.image;
+    pad.appendChild(img);
+  } else {
+    const span = document.createElement('span');
+    span.className = 'cursive';
+    span.textContent = data.name || '';
+    pad.appendChild(span);
+  }
+
+  const tag = data.tag ? '[' + data.tag + '] ' : '';
+  nameEl.textContent = tag + (data.name || '');
+  titleEl.textContent = data.title || '';
+}
+
+async function loadSignatoriesIntoLetter(){
+  let rec = await dbGet('settings', 'signatories');
+  if (!rec) rec = DEFAULT_SIGNATORY;
+  applySignatoryToDOM(rec.sig);
+  return rec;
+}
+
+/* ============================================================
+   Settings tab
+   ============================================================ */
+let pendingImage1 = undefined; // undefined = no change, null = removed, string = new base64
+
+async function loadSettingsForm(){
+  let rec = await dbGet('settings', 'signatories');
+  if (!rec) rec = DEFAULT_SIGNATORY;
+
+  document.getElementById('s1-tag').value = rec.sig.tag || '';
+  document.getElementById('s1-name').value = rec.sig.name || '';
+  document.getElementById('s1-title').value = rec.sig.title || '';
+
+  renderSettingsPreview(rec.sig);
+  pendingImage1 = undefined;
+}
+
+function renderSettingsPreview(data){
+  const el = document.getElementById('previewSig');
+  el.innerHTML = '';
+  if (data.image) {
+    const img = document.createElement('img');
+    img.src = data.image;
+    el.appendChild(img);
+  } else {
+    const span = document.createElement('span');
+    span.className = 'cursive-preview';
+    span.textContent = data.name || 'No signature uploaded';
+    el.appendChild(span);
+  }
+}
+
+function handleUpload(file){
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    pendingImage1 = dataUrl;
+    const el = document.getElementById('previewSig');
+    el.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    el.appendChild(img);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveSettings(){
+  let rec = await dbGet('settings', 'signatories');
+  if (!rec) rec = JSON.parse(JSON.stringify(DEFAULT_SIGNATORY));
+
+  rec.sig.tag = document.getElementById('s1-tag').value.trim();
+  rec.sig.name = document.getElementById('s1-name').value.trim();
+  rec.sig.title = document.getElementById('s1-title').value.trim();
+
+  if (pendingImage1 !== undefined) rec.sig.image = pendingImage1;
+
+  await dbPut('settings', rec);
+  pendingImage1 = undefined;
+
+  await loadSignatoriesIntoLetter();
+  await loadSettingsForm();
+
+  const msg = document.getElementById('saveMsg');
+  msg.classList.add('show');
+  setTimeout(() => msg.classList.remove('show'), 2200);
+  showToast('Settings saved');
+}
+
+async function resetSettingsToDefault(){
+  await dbPut('settings', JSON.parse(JSON.stringify(DEFAULT_SIGNATORY)));
+  pendingImage1 = undefined;
+  await loadSignatoriesIntoLetter();
+  await loadSettingsForm();
+  showToast('Reset to default');
+}
+
+/* ============================================================
+   History tab
+   ============================================================ */
+function gatherFormData(){
+  return {
+    internId: document.getElementById('f-internId').value.trim(),
+    name: document.getElementById('f-name').value.trim(),
+    role: document.getElementById('f-role').value.trim(),
+    company: document.getElementById('f-company').value.trim(),
+    duration: document.getElementById('f-duration').value.trim(),
+    startDate: document.getElementById('f-startDate').value,
+    endDate: document.getElementById('f-endDate').value,
+    worktype: document.getElementById('f-worktype').value,
+    stipendType: document.querySelector('input[name="stipendType"]:checked').value,
+    stipend: document.getElementById('f-stipend').value.trim(),
+    savedAt: new Date().toISOString()
+  };
+}
+
+function applyFormData(rec){
+  document.getElementById('f-internId').value = rec.internId || '';
+  document.getElementById('f-name').value = rec.name || '';
+  document.getElementById('f-role').value = rec.role || '';
+  document.getElementById('f-company').value = rec.company || '';
+  document.getElementById('f-duration').value = rec.duration || '';
+  document.getElementById('f-startDate').value = rec.startDate || '';
+  document.getElementById('f-endDate').value = rec.endDate || '';
+  document.getElementById('f-worktype').value = rec.worktype || '';
+  document.querySelectorAll('input[name="stipendType"]').forEach(r => r.checked = (r.value === (rec.stipendType || 'fixed')));
+  document.getElementById('f-stipend').value = rec.stipend || '';
+  toggleStipendField();
+  renderLetter();
+}
+
+async function saveCurrentToHistory(){
+  const data = gatherFormData();
+  if (!data.name && !data.internId) {
+    showToast('Add at least a name or intern ID first');
+    return;
+  }
+  await dbPut('letters', data);
+  showToast('Saved to history');
+  await refreshHistoryTable();
+}
+
+async function refreshHistoryTable(filter){
+  const all = await dbGetAll('letters');
+  all.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+
+  const q = (filter || '').trim().toLowerCase();
+  const filtered = q ? all.filter(r =>
+    (r.name || '').toLowerCase().includes(q) || (r.internId || '').toLowerCase().includes(q)
+  ) : all;
+
+  const body = document.getElementById('historyBody');
+  const empty = document.getElementById('historyEmpty');
+  body.innerHTML = '';
+
+  document.getElementById('historyCount').textContent = all.length ? (all.length + ' saved') : '';
+
+  if (!filtered.length) {
+    empty.style.display = '';
+    empty.textContent = all.length ? 'No letters match your search.' : 'No saved letters yet — generate one and click "Save to History".';
+    return;
+  }
+  empty.style.display = 'none';
+
+  filtered.forEach(rec => {
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td><span class="badge">' + escapeHtml(rec.internId || '—') + '</span></td>' +
+      '<td>' + escapeHtml(rec.name || '—') + '</td>' +
+      '<td>' + escapeHtml(rec.role || '—') + '</td>' +
+      '<td>' + escapeHtml(rec.company || '—') + '</td>' +
+      '<td>' + new Date(rec.savedAt).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) + '</td>' +
+      '<td><div class="row-actions">' +
+        '<button class="btn btn-ghost btn-sm" data-act="load" data-id="' + rec.id + '">Load</button>' +
+        '<button class="btn btn-ghost btn-sm" data-act="print" data-id="' + rec.id + '">Print</button>' +
+        '<button class="btn btn-danger btn-sm" data-act="delete" data-id="' + rec.id + '">Delete</button>' +
+      '</div></td>';
+    body.appendChild(tr);
+  });
+}
+
+async function handleHistoryAction(act, id){
+  const all = await dbGetAll('letters');
+  const rec = all.find(r => r.id === id);
+  if (!rec) return;
+
+  if (act === 'delete') {
+    await dbDelete('letters', id);
+    showToast('Deleted');
+    refreshHistoryTable(document.getElementById('historySearch').value);
+    return;
+  }
+  if (act === 'load') {
+    applyFormData(rec);
+    switchTab('generate');
+    showToast('Loaded into the form');
+    return;
+  }
+  if (act === 'print') {
+    applyFormData(rec);
+    switchTab('generate');
+    setTimeout(() => window.print(), 150);
+  }
+}
+
+/* ============================================================
+   Init
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', async () => {
+  // tabs
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  // form live updates
+  const form = document.getElementById('letterForm');
+  form.addEventListener('input', renderLetter);
+  form.addEventListener('change', () => { toggleStipendField(); renderLetter(); });
+
+  document.getElementById('resetFormBtn').addEventListener('click', () => {
+    form.reset();
+    toggleStipendField();
+    renderLetter();
+  });
+
+  document.getElementById('saveHistoryBtn').addEventListener('click', saveCurrentToHistory);
+
+  document.getElementById('printBtn').addEventListener('click', () => {
+    switchTab('generate');
+    requestAnimationFrame(() => window.print());
+  });
+
+  // history
+  document.getElementById('historySearch').addEventListener('input', (e) => refreshHistoryTable(e.target.value));
+  document.getElementById('historyBody').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    handleHistoryAction(btn.dataset.act, Number(btn.dataset.id));
+  });
+
+  // settings
+  document.getElementById('upload1').addEventListener('change', (e) => handleUpload(e.target.files[0]));
+  document.getElementById('remove1').addEventListener('click', () => {
+    pendingImage1 = null;
+    renderSettingsPreview({ name: document.getElementById('s1-name').value });
+  });
+  document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
+  document.getElementById('resetSettingsBtn').addEventListener('click', resetSettingsToDefault);
+
+  // boot
+  toggleStipendField();
+  renderLetter();
+  await loadSignatoriesIntoLetter();
+  await loadSettingsForm();
+  await refreshHistoryTable();
+});
+</script>
+</body>
+</html>
